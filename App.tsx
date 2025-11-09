@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { InputForm } from './components/InputForm';
@@ -7,6 +8,7 @@ import { getCritique, scrapeBrandInfo } from './services/geminiService';
 import type { BrandInfo, CritiqueResult } from './types';
 import { WebsiteInput } from './components/WebsiteInput';
 import { ScoringGuide } from './components/ScoringGuide';
+import { ProjectSummary } from './components/ProjectSummary';
 
 type AppStep = 'URL_INPUT' | 'CRITIQUE_FORM';
 
@@ -21,6 +23,7 @@ const App: React.FC = () => {
     null
   );
   const [showGuide, setShowGuide] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
 
 
   const handleUrlSubmit = async (url: string) => {
@@ -53,6 +56,7 @@ const App: React.FC = () => {
     try {
       const result = await getCritique(file, brandInfo, contentDescription);
       setCritique(result);
+    // Fix: Added braces to the catch block to correctly handle errors and prevent cascading scope issues.
     } catch (err) {
       console.error(err);
       setError(
@@ -77,7 +81,12 @@ const App: React.FC = () => {
     if (appStep === 'URL_INPUT') {
       return (
         <div className="flex items-center justify-center min-h-[60vh]">
-          <WebsiteInput onSubmit={handleUrlSubmit} isLoading={isScraping} error={scrapingError} />
+          <WebsiteInput 
+            onSubmit={handleUrlSubmit} 
+            isLoading={isScraping} 
+            error={scrapingError} 
+            onShowSummary={() => setShowSummary(true)}
+          />
         </div>
       );
     }
@@ -132,6 +141,7 @@ const App: React.FC = () => {
         {renderContent()}
       </main>
       {showGuide && <ScoringGuide onClose={() => setShowGuide(false)} />}
+      {showSummary && <ProjectSummary onClose={() => setShowSummary(false)} />}
     </div>
   );
 };

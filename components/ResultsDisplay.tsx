@@ -40,8 +40,40 @@ const ScoreBar: React.FC<{ score: number; label: string }> = ({ score, label }) 
   );
 };
 
+const getGroupedKillReasons = (reasons: string[] = []) => {
+    const grouped: { [key: string]: string[] } = {};
+
+    const categoryKeywords: { [key: string]: string[] } = {
+        'BrandFit': ['branding', 'brand', 'logo', 'colors', 'voiceover', 'tone'],
+        'Clarity': ['hook', 'message', 'cta', 'call to action', 'script', 'unwatchable', 'gross'],
+        'Visual Quality': ['text error', 'typo', 'aspect ratio', 'audio', 'distorted'],
+    };
+
+    reasons.forEach(reason => {
+        let assigned = false;
+        const reasonLower = reason.toLowerCase();
+        for (const category in categoryKeywords) {
+            if (categoryKeywords[category].some(keyword => reasonLower.includes(keyword))) {
+                if (!grouped[category]) grouped[category] = [];
+                grouped[category].push(reason);
+                assigned = true;
+                break; // Assign to the first category that matches
+            }
+        }
+        if (!assigned) {
+             if (!grouped['Other Failures']) grouped['Other Failures'] = [];
+             grouped['Other Failures'].push(reason);
+        }
+    });
+
+    return grouped;
+}
+
+
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ critique, onExplain }) => {
   if (critique.verdict === 'UNDEPLOYABLE - KILL IT') {
+    const groupedReasons = getGroupedKillReasons(critique.kill_reasons);
+
     return (
       <div className="w-full text-center p-4 bg-brand-kill/10 border border-brand-kill rounded-lg">
         <h2 className={`text-3xl font-extrabold px-4 py-2 rounded-md inline-block ${getVerdictColor(critique.verdict)}`}>
@@ -63,6 +95,24 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ critique, onExpl
            <h3 className="font-bold text-lg text-brand-accent mb-2">Emergency Fix:</h3>
            <p className="text-gray-300">{critique.emergency_fix}</p>
         </div>
+
+        <div className="mt-6 text-left">
+            <h3 className="font-bold text-lg text-white mb-2">Rubric Breakdown:</h3>
+            <div className="space-y-3">
+                {Object.entries(groupedReasons).map(([category, reasons]) => {
+                    if (reasons.length === 0) return null;
+                    return (
+                        <div key={category} className="bg-gray-800 p-3 rounded-md">
+                            <h4 className="font-semibold text-brand-warn">{category} Failures</h4>
+                            <ul className="list-disc list-inside text-sm text-gray-300 mt-1 pl-2 space-y-1">
+                                {reasons.map((reason, i) => <li key={i}>{reason}</li>)}
+                            </ul>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+
       </div>
     );
   }

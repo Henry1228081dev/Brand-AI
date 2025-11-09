@@ -4,12 +4,14 @@ interface WebsiteInputProps {
   onSubmit: (url: string) => void;
   isLoading: boolean;
   error: string | null;
+  onShowSummary: () => void;
 }
 
 export const WebsiteInput: React.FC<WebsiteInputProps> = ({
   onSubmit,
   isLoading,
   error,
+  onShowSummary,
 }) => {
   const [url, setUrl] = useState('');
   const [validationError, setValidationError] = useState('');
@@ -80,6 +82,9 @@ export const WebsiteInput: React.FC<WebsiteInputProps> = ({
           )}
         </button>
       </form>
+       <button onClick={onShowSummary} className="text-sm text-gray-400 hover:underline mt-6">
+        What is this?
+      </button>
     </div>
   );
 };
